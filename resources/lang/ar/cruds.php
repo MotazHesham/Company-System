@@ -624,6 +624,8 @@ return [
             'updated_at_helper'  => ' ',
             'deleted_at'         => 'Deleted At',
             'deleted_at_helper'  => ' ',
+            'created_by'         => 'Created By',
+            'created_by_helper'  => ' ',
         ],
     ],
     'tasksCalendar' => [

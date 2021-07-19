@@ -12,16 +12,53 @@ use App\Models\TimeWorkType;
 use Gate;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Yajra\DataTables\Facades\DataTables;
 
 class TimeEntryController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         abort_if(Gate::denies('time_entry_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $timeEntries = TimeEntry::with(['work_type', 'project'])->get();
+        if ($request->ajax()) {
+            $query = TimeEntry::with(['work_type', 'project'])->select(sprintf('%s.*', (new TimeEntry())->table));
+            $table = Datatables::of($query);
 
-        return view('admin.timeEntries.index', compact('timeEntries'));
+            $table->addColumn('placeholder', '&nbsp;');
+            $table->addColumn('actions', '&nbsp;');
+
+            $table->editColumn('actions', function ($row) {
+                $viewGate = 'time_entry_show';
+                $editGate = 'time_entry_edit';
+                $deleteGate = 'time_entry_delete';
+                $crudRoutePart = 'time-entries';
+
+                return view('partials.datatablesActions', compact(
+                'viewGate',
+                'editGate',
+                'deleteGate',
+                'crudRoutePart',
+                'row'
+            ));
+            });
+
+            $table->editColumn('id', function ($row) {
+                return $row->id ? $row->id : '';
+            });
+            $table->addColumn('work_type_name', function ($row) {
+                return $row->work_type ? $row->work_type->name : '';
+            });
+
+            $table->addColumn('project_name', function ($row) {
+                return $row->project ? $row->project->name : '';
+            });
+
+            $table->rawColumns(['actions', 'placeholder', 'work_type', 'project']);
+
+            return $table->make(true);
+        }
+
+        return view('admin.timeEntries.index');
     }
 
     public function create()
