@@ -13,6 +13,8 @@ class AddRelationshipFieldsToTasksTable extends Migration
             $table->foreign('status_id', 'status_fk_4409177')->references('id')->on('task_statuses');
             $table->unsignedBigInteger('assigned_to_id')->nullable();
             $table->foreign('assigned_to_id', 'assigned_to_fk_4409181')->references('id')->on('users');
+            $table->unsignedBigInteger('created_by_id')->nullable();
+            $table->foreign('created_by_id', 'created_by_fk_4409281')->references('id')->on('users');
         });
     }
 }
