@@ -62,11 +62,11 @@
                             {{ trans('cruds.task.fields.attachment') }}
                         </th>
                         <td>
-                            @if($task->attachment)
-                                <a href="{{ $task->attachment->getUrl() }}" target="_blank">
+                            @foreach($task->attachment as $key => $media)
+                                <a href="{{ $media->getUrl() }}" target="_blank">
                                     {{ trans('global.view_file') }}
                                 </a>
-                            @endif
+                            @endforeach
                         </td>
                     </tr>
                     <tr>
@@ -83,6 +83,14 @@
                         </th>
                         <td>
                             {{ $task->assigned_to->name ?? '' }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            {{ trans('cruds.task.fields.project') }}
+                        </th>
+                        <td>
+                            {{ $task->project->name ?? '' }}
                         </td>
                     </tr>
                 </tbody>

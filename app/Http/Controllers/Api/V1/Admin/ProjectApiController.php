@@ -17,12 +17,14 @@ class ProjectApiController extends Controller
     {
         abort_if(Gate::denies('project_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        return new ProjectResource(Project::with(['client', 'status'])->get());
+        return new ProjectResource(Project::with(['status', 'client', 'tags', 'developers'])->get());
     }
 
     public function store(StoreProjectRequest $request)
     {
         $project = Project::create($request->all());
+        $project->tags()->sync($request->input('tags', []));
+        $project->developers()->sync($request->input('developers', []));
 
         return (new ProjectResource($project))
             ->response()
@@ -33,12 +35,14 @@ class ProjectApiController extends Controller
     {
         abort_if(Gate::denies('project_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        return new ProjectResource($project->load(['client', 'status']));
+        return new ProjectResource($project->load(['status', 'client', 'tags', 'developers']));
     }
 
     public function update(UpdateProjectRequest $request, Project $project)
     {
         $project->update($request->all());
+        $project->tags()->sync($request->input('tags', []));
+        $project->developers()->sync($request->input('developers', []));
 
         return (new ProjectResource($project))
             ->response()

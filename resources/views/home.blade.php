@@ -43,44 +43,27 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="{{ $settings4['column_class'] }}">
-                            <div class="card text-white bg-primary">
-                                <div class="card-body pb-0">
-                                    <div class="text-value">{{ number_format($settings4['total_number']) }}</div>
-                                    <div>{{ $settings4['chart_title'] }}</div>
-                                    <br />
-                                </div>
-                            </div>
-                        </div>
-                        <div class="{{ $chart5->options['column_class'] }}">
-                            <h3>{!! $chart5->options['chart_title'] !!}</h3>
-                            {!! $chart5->renderHtml() !!}
-                        </div>
-                        <div class="{{ $chart6->options['column_class'] }}">
-                            <h3>{!! $chart6->options['chart_title'] !!}</h3>
-                            {!! $chart6->renderHtml() !!}
-                        </div>
-                        <div class="{{ $chart7->options['column_class'] }}">
-                            <h3>{!! $chart7->options['chart_title'] !!}</h3>
-                            {!! $chart7->renderHtml() !!}
+                        <div class="{{ $chart4->options['column_class'] }}">
+                            <h3>{!! $chart4->options['chart_title'] !!}</h3>
+                            {!! $chart4->renderHtml() !!}
                         </div>
                         {{-- Widget - latest entries --}}
-                        <div class="{{ $settings8['column_class'] }}" style="overflow-x: auto;">
-                            <h3>{{ $settings8['chart_title'] }}</h3>
+                        <div class="{{ $settings5['column_class'] }}" style="overflow-x: auto;">
+                            <h3>{{ $settings5['chart_title'] }}</h3>
                             <table class="table table-bordered table-striped">
                                 <thead>
                                     <tr>
-                                        @foreach($settings8['fields'] as $key => $value)
+                                        @foreach($settings5['fields'] as $key => $value)
                                             <th>
-                                                {{ trans(sprintf('cruds.%s.fields.%s', $settings8['translation_key'] ?? 'pleaseUpdateWidget', $key)) }}
+                                                {{ trans(sprintf('cruds.%s.fields.%s', $settings5['translation_key'] ?? 'pleaseUpdateWidget', $key)) }}
                                             </th>
                                         @endforeach
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @forelse($settings8['data'] as $entry)
+                                    @forelse($settings5['data'] as $entry)
                                         <tr>
-                                            @foreach($settings8['fields'] as $key => $value)
+                                            @foreach($settings5['fields'] as $key => $value)
                                                 <td>
                                                     @if($value === '')
                                                         {{ $entry->{$key} }}
@@ -96,7 +79,7 @@
                                         </tr>
                                         @empty
                                         <tr>
-                                            <td colspan="{{ count($settings8['fields']) }}">{{ __('No entries found') }}</td>
+                                            <td colspan="{{ count($settings5['fields']) }}">{{ __('No entries found') }}</td>
                                         </tr>
                                     @endforelse
                                 </tbody>
@@ -112,5 +95,5 @@
 @endsection
 @section('scripts')
 @parent
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>{!! $chart5->renderJs() !!}{!! $chart6->renderJs() !!}{!! $chart7->renderJs() !!}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js"></script>{!! $chart4->renderJs() !!}
 @endsection

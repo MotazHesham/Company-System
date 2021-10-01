@@ -13,25 +13,76 @@ use Gate;
 use Illuminate\Http\Request;
 use Spatie\MediaLibrary\Models\Media;
 use Symfony\Component\HttpFoundation\Response;
+use Yajra\DataTables\Facades\DataTables;
 
 class DocumentController extends Controller
 {
     use MediaUploadingTrait;
 
-    public function index()
+    public function index(Request $request)
     {
         abort_if(Gate::denies('document_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $documents = Document::with(['project', 'media'])->get();
+        if ($request->ajax()) {
+            $query = Document::with(['project'])->select(sprintf('%s.*', (new Document())->table));
+            $table = Datatables::of($query);
 
-        return view('admin.documents.index', compact('documents'));
+            $table->addColumn('placeholder', '&nbsp;');
+            $table->addColumn('actions', '&nbsp;');
+
+            $table->editColumn('actions', function ($row) {
+                $viewGate = 'document_show';
+                $editGate = 'document_edit';
+                $deleteGate = 'document_delete';
+                $crudRoutePart = 'documents';
+
+                return view('partials.datatablesActions', compact(
+                'viewGate',
+                'editGate',
+                'deleteGate',
+                'crudRoutePart',
+                'row'
+            ));
+            });
+
+            $table->editColumn('id', function ($row) {
+                return $row->id ? $row->id : '';
+            });
+            $table->editColumn('name', function ($row) {
+                return $row->name ? $row->name : '';
+            });
+            $table->editColumn('description', function ($row) {
+                return $row->description ? $row->description : '';
+            });
+            $table->addColumn('project_name', function ($row) {
+                return $row->project ? $row->project->name : '';
+            });
+
+            $table->editColumn('document_file', function ($row) {
+                if (!$row->document_file) {
+                    return '';
+                }
+                $links = [];
+                foreach ($row->document_file as $media) {
+                    $links[] = '<a href="' . $media->getUrl() . '" target="_blank">' . trans('global.downloadFile') . '</a>';
+                }
+
+                return implode(', ', $links);
+            });
+
+            $table->rawColumns(['actions', 'placeholder', 'project', 'document_file']);
+
+            return $table->make(true);
+        }
+
+        return view('admin.documents.index');
     }
 
     public function create()
     {
         abort_if(Gate::denies('document_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $projects = Project::all()->pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
+        $projects = Project::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
 
         return view('admin.documents.create', compact('projects'));
     }
@@ -40,8 +91,8 @@ class DocumentController extends Controller
     {
         $document = Document::create($request->all());
 
-        if ($request->input('document_file', false)) {
-            $document->addMedia(storage_path('tmp/uploads/' . basename($request->input('document_file'))))->toMediaCollection('document_file');
+        foreach ($request->input('document_file', []) as $file) {
+            $document->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('document_file');
         }
 
         if ($media = $request->input('ck-media', false)) {
@@ -55,7 +106,7 @@ class DocumentController extends Controller
     {
         abort_if(Gate::denies('document_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $projects = Project::all()->pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
+        $projects = Project::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
 
         $document->load('project');
 
@@ -66,15 +117,18 @@ class DocumentController extends Controller
     {
         $document->update($request->all());
 
-        if ($request->input('document_file', false)) {
-            if (!$document->document_file || $request->input('document_file') !== $document->document_file->file_name) {
-                if ($document->document_file) {
-                    $document->document_file->delete();
+        if (count($document->document_file) > 0) {
+            foreach ($document->document_file as $media) {
+                if (!in_array($media->file_name, $request->input('document_file', []))) {
+                    $media->delete();
                 }
-                $document->addMedia(storage_path('tmp/uploads/' . basename($request->input('document_file'))))->toMediaCollection('document_file');
             }
-        } elseif ($document->document_file) {
-            $document->document_file->delete();
+        }
+        $media = $document->document_file->pluck('file_name')->toArray();
+        foreach ($request->input('document_file', []) as $file) {
+            if (count($media) === 0 || !in_array($file, $media)) {
+                $document->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('document_file');
+            }
         }
 
         return redirect()->route('admin.documents.index');

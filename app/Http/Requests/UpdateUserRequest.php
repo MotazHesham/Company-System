@@ -32,6 +32,15 @@ class UpdateUserRequest extends FormRequest
                 'required',
                 'array',
             ],
+            'photo' => [
+                'required',
+            ],
+            'working_hours' => [
+                'nullable',
+                'integer',
+                'min:-2147483648',
+                'max:2147483647',
+            ],
         ];
     }
 }

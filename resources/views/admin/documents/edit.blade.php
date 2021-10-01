@@ -11,6 +11,26 @@
             @method('PUT')
             @csrf
             <div class="form-group">
+                <label class="required" for="name">{{ trans('cruds.document.fields.name') }}</label>
+                <input class="form-control {{ $errors->has('name') ? 'is-invalid' : '' }}" type="text" name="name" id="name" value="{{ old('name', $document->name) }}" required>
+                @if($errors->has('name'))
+                    <div class="invalid-feedback">
+                        {{ $errors->first('name') }}
+                    </div>
+                @endif
+                <span class="help-block">{{ trans('cruds.document.fields.name_helper') }}</span>
+            </div>
+            <div class="form-group">
+                <label for="description">{{ trans('cruds.document.fields.description') }}</label>
+                <textarea class="form-control {{ $errors->has('description') ? 'is-invalid' : '' }}" name="description" id="description">{{ old('description', $document->description) }}</textarea>
+                @if($errors->has('description'))
+                    <div class="invalid-feedback">
+                        {{ $errors->first('description') }}
+                    </div>
+                @endif
+                <span class="help-block">{{ trans('cruds.document.fields.description_helper') }}</span>
+            </div>
+            <div class="form-group">
                 <label class="required" for="project_id">{{ trans('cruds.document.fields.project') }}</label>
                 <select class="form-control select2 {{ $errors->has('project') ? 'is-invalid' : '' }}" name="project_id" id="project_id" required>
                     @foreach($projects as $id => $entry)
@@ -36,26 +56,6 @@
                 <span class="help-block">{{ trans('cruds.document.fields.document_file_helper') }}</span>
             </div>
             <div class="form-group">
-                <label for="name">{{ trans('cruds.document.fields.name') }}</label>
-                <input class="form-control {{ $errors->has('name') ? 'is-invalid' : '' }}" type="text" name="name" id="name" value="{{ old('name', $document->name) }}">
-                @if($errors->has('name'))
-                    <div class="invalid-feedback">
-                        {{ $errors->first('name') }}
-                    </div>
-                @endif
-                <span class="help-block">{{ trans('cruds.document.fields.name_helper') }}</span>
-            </div>
-            <div class="form-group">
-                <label for="description">{{ trans('cruds.document.fields.description') }}</label>
-                <textarea class="form-control {{ $errors->has('description') ? 'is-invalid' : '' }}" name="description" id="description">{{ old('description', $document->description) }}</textarea>
-                @if($errors->has('description'))
-                    <div class="invalid-feedback">
-                        {{ $errors->first('description') }}
-                    </div>
-                @endif
-                <span class="help-block">{{ trans('cruds.document.fields.description_helper') }}</span>
-            </div>
-            <div class="form-group">
                 <button class="btn btn-danger" type="submit">
                     {{ trans('global.save') }}
                 </button>
@@ -70,35 +70,41 @@
 
 @section('scripts')
 <script>
-    Dropzone.options.documentFileDropzone = {
+    var uploadedDocumentFileMap = {}
+Dropzone.options.documentFileDropzone = {
     url: '{{ route('admin.documents.storeMedia') }}',
-    maxFilesize: 2, // MB
-    maxFiles: 1,
+    maxFilesize: 30, // MB
     addRemoveLinks: true,
     headers: {
       'X-CSRF-TOKEN': "{{ csrf_token() }}"
     },
     params: {
-      size: 2
+      size: 30
     },
     success: function (file, response) {
-      $('form').find('input[name="document_file"]').remove()
-      $('form').append('<input type="hidden" name="document_file" value="' + response.name + '">')
+      $('form').append('<input type="hidden" name="document_file[]" value="' + response.name + '">')
+      uploadedDocumentFileMap[file.name] = response.name
     },
     removedfile: function (file) {
       file.previewElement.remove()
-      if (file.status !== 'error') {
-        $('form').find('input[name="document_file"]').remove()
-        this.options.maxFiles = this.options.maxFiles + 1
+      var name = ''
+      if (typeof file.file_name !== 'undefined') {
+        name = file.file_name
+      } else {
+        name = uploadedDocumentFileMap[file.name]
       }
+      $('form').find('input[name="document_file[]"][value="' + name + '"]').remove()
     },
     init: function () {
 @if(isset($document) && $document->document_file)
-      var file = {!! json_encode($document->document_file) !!}
-          this.options.addedfile.call(this, file)
-      file.previewElement.classList.add('dz-complete')
-      $('form').append('<input type="hidden" name="document_file" value="' + file.file_name + '">')
-      this.options.maxFiles = this.options.maxFiles - 1
+          var files =
+            {!! json_encode($document->document_file) !!}
+              for (var i in files) {
+              var file = files[i]
+              this.options.addedfile.call(this, file)
+              file.previewElement.classList.add('dz-complete')
+              $('form').append('<input type="hidden" name="document_file[]" value="' + file.file_name + '">')
+            }
 @endif
     },
      error: function (file, response) {

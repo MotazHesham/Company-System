@@ -3,12 +3,14 @@
 namespace App\Models;
 
 use \DateTimeInterface;
+use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Client extends Model
 {
     use SoftDeletes;
+    use Auditable;
 
     public $table = 'clients';
 
@@ -19,15 +21,11 @@ class Client extends Model
     ];
 
     protected $fillable = [
-        'first_name',
-        'last_name',
         'company',
-        'email',
-        'phone',
         'website',
-        'skype',
         'country',
         'status_id',
+        'user_id',
         'created_at',
         'updated_at',
         'deleted_at',
@@ -36,6 +34,11 @@ class Client extends Model
     public function status()
     {
         return $this->belongsTo(ClientStatus::class, 'status_id');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_id');
     }
 
     protected function serializeDate(DateTimeInterface $date)

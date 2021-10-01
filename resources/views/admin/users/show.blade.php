@@ -69,6 +69,14 @@
                             @endif
                         </td>
                     </tr>
+                    <tr>
+                        <th>
+                            {{ trans('cruds.user.fields.working_hours') }}
+                        </th>
+                        <td>
+                            {{ $user->working_hours }}
+                        </td>
+                    </tr>
                 </tbody>
             </table>
             <div class="form-group">
@@ -90,10 +98,26 @@
                 {{ trans('cruds.userAlert.title') }}
             </a>
         </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#developers_meetings" role="tab" data-toggle="tab">
+                {{ trans('cruds.meeting.title') }}
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" href="#developers_projects" role="tab" data-toggle="tab">
+                {{ trans('cruds.project.title') }}
+            </a>
+        </li>
     </ul>
     <div class="tab-content">
         <div class="tab-pane" role="tabpanel" id="user_user_alerts">
             @includeIf('admin.users.relationships.userUserAlerts', ['userAlerts' => $user->userUserAlerts])
+        </div>
+        <div class="tab-pane" role="tabpanel" id="developers_meetings">
+            @includeIf('admin.users.relationships.developersMeetings', ['meetings' => $user->developersMeetings])
+        </div>
+        <div class="tab-pane" role="tabpanel" id="developers_projects">
+            @includeIf('admin.users.relationships.developersProjects', ['projects' => $user->developersProjects])
         </div>
     </div>
 </div>

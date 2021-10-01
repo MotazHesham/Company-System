@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use \DateTimeInterface;
+use App\Traits\Auditable;
 use Carbon\Carbon;
 use Hash;
 use Illuminate\Auth\Notifications\ResetPassword;
@@ -19,6 +20,7 @@ class User extends Authenticatable implements HasMedia
     use SoftDeletes;
     use Notifiable;
     use HasMediaTrait;
+    use Auditable;
 
     public $table = 'users';
 
@@ -44,6 +46,8 @@ class User extends Authenticatable implements HasMedia
         'email_verified_at',
         'password',
         'remember_token',
+        'user_type',
+        'working_hours',
         'created_at',
         'updated_at',
         'deleted_at',
@@ -63,6 +67,16 @@ class User extends Authenticatable implements HasMedia
     public function userUserAlerts()
     {
         return $this->belongsToMany(UserAlert::class);
+    }
+
+    public function developersMeetings()
+    {
+        return $this->belongsToMany(Meeting::class);
+    }
+
+    public function developersProjects()
+    {
+        return $this->belongsToMany(Project::class);
     }
 
     public function getEmailVerifiedAtAttribute($value)

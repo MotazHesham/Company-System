@@ -25,26 +25,6 @@
                     </tr>
                     <tr>
                         <th>
-                            {{ trans('cruds.document.fields.project') }}
-                        </th>
-                        <td>
-                            {{ $document->project->name ?? '' }}
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>
-                            {{ trans('cruds.document.fields.document_file') }}
-                        </th>
-                        <td>
-                            @if($document->document_file)
-                                <a href="{{ $document->document_file->getUrl() }}" target="_blank">
-                                    {{ trans('global.view_file') }}
-                                </a>
-                            @endif
-                        </td>
-                    </tr>
-                    <tr>
-                        <th>
                             {{ trans('cruds.document.fields.name') }}
                         </th>
                         <td>
@@ -57,6 +37,26 @@
                         </th>
                         <td>
                             {{ $document->description }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            {{ trans('cruds.document.fields.project') }}
+                        </th>
+                        <td>
+                            {{ $document->project->name ?? '' }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>
+                            {{ trans('cruds.document.fields.document_file') }}
+                        </th>
+                        <td>
+                            @foreach($document->document_file as $key => $media)
+                                <a href="{{ $media->getUrl() }}" target="_blank">
+                                    {{ trans('global.view_file') }}
+                                </a>
+                            @endforeach
                         </td>
                     </tr>
                 </tbody>

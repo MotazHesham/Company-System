@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use \DateTimeInterface;
+use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\MediaLibrary\HasMedia\HasMedia;
@@ -13,6 +14,7 @@ class Document extends Model implements HasMedia
 {
     use SoftDeletes;
     use HasMediaTrait;
+    use Auditable;
 
     public $table = 'documents';
 
@@ -27,9 +29,9 @@ class Document extends Model implements HasMedia
     ];
 
     protected $fillable = [
-        'project_id',
         'name',
         'description',
+        'project_id',
         'created_at',
         'updated_at',
         'deleted_at',
@@ -48,7 +50,7 @@ class Document extends Model implements HasMedia
 
     public function getDocumentFileAttribute()
     {
-        return $this->getMedia('document_file')->last();
+        return $this->getMedia('document_file');
     }
 
     protected function serializeDate(DateTimeInterface $date)
