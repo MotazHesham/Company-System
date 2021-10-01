@@ -13,25 +13,83 @@ use Gate;
 use Illuminate\Http\Request;
 use Spatie\MediaLibrary\Models\Media;
 use Symfony\Component\HttpFoundation\Response;
+use Yajra\DataTables\Facades\DataTables;
 
 class UsersController extends Controller
 {
     use MediaUploadingTrait;
 
-    public function index()
+    public function index(Request $request)
     {
         abort_if(Gate::denies('user_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $users = User::with(['roles', 'media'])->get();
+        if ($request->ajax()) {
+            $query = User::with(['roles'])->select(sprintf('%s.*', (new User())->table));
+            $table = Datatables::of($query);
 
-        return view('admin.users.index', compact('users'));
+            $table->addColumn('placeholder', '&nbsp;');
+            $table->addColumn('actions', '&nbsp;');
+
+            $table->editColumn('actions', function ($row) {
+                $viewGate = 'user_show';
+                $editGate = 'user_edit';
+                $deleteGate = 'user_delete';
+                $crudRoutePart = 'users';
+
+                return view('partials.datatablesActions', compact(
+                'viewGate',
+                'editGate',
+                'deleteGate',
+                'crudRoutePart',
+                'row'
+            ));
+            });
+
+            $table->editColumn('id', function ($row) {
+                return $row->id ? $row->id : '';
+            });
+            $table->editColumn('name', function ($row) {
+                return $row->name ? $row->name : '';
+            });
+            $table->editColumn('email', function ($row) {
+                return $row->email ? $row->email : '';
+            });
+            $table->editColumn('roles', function ($row) {
+                $labels = [];
+                foreach ($row->roles as $role) {
+                    $labels[] = sprintf('<span class="label label-info label-many">%s</span>', $role->title);
+                }
+
+                return implode(' ', $labels);
+            });
+            $table->editColumn('photo', function ($row) {
+                if ($photo = $row->photo) {
+                    return sprintf(
+        '<a href="%s" target="_blank"><img src="%s" width="50px" height="50px"></a>',
+        $photo->url,
+        $photo->thumbnail
+    );
+                }
+
+                return '';
+            });
+            $table->editColumn('working_hours', function ($row) {
+                return $row->working_hours ? $row->working_hours : '';
+            });
+
+            $table->rawColumns(['actions', 'placeholder', 'roles', 'photo']);
+
+            return $table->make(true);
+        }
+
+        return view('admin.users.index');
     }
 
     public function create()
     {
         abort_if(Gate::denies('user_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $roles = Role::all()->pluck('title', 'id');
+        $roles = Role::pluck('title', 'id');
 
         return view('admin.users.create', compact('roles'));
     }
@@ -55,7 +113,7 @@ class UsersController extends Controller
     {
         abort_if(Gate::denies('user_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $roles = Role::all()->pluck('title', 'id');
+        $roles = Role::pluck('title', 'id');
 
         $user->load('roles');
 
@@ -84,7 +142,7 @@ class UsersController extends Controller
     {
         abort_if(Gate::denies('user_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $user->load('roles', 'userUserAlerts');
+        $user->load('roles', 'userUserAlerts', 'developersMeetings', 'developersProjects');
 
         return view('admin.users.show', compact('user'));
     }

@@ -39,6 +39,7 @@ class Task extends Model implements HasMedia
         'due_date',
         'assigned_to_id',
         'created_at',
+        'project_id',
         'updated_at',
         'deleted_at',
         'created_by_id',
@@ -62,7 +63,7 @@ class Task extends Model implements HasMedia
 
     public function getAttachmentAttribute()
     {
-        return $this->getMedia('attachment')->last();
+        return $this->getMedia('attachment');
     }
 
     public function getDueDateAttribute($value)
@@ -78,6 +79,11 @@ class Task extends Model implements HasMedia
     public function assigned_to()
     {
         return $this->belongsTo(User::class, 'assigned_to_id');
+    }
+
+    public function project()
+    {
+        return $this->belongsTo(Project::class, 'project_id');
     }
 
     public function created_by()

@@ -8,28 +8,77 @@ use App\Http\Requests\StoreClientRequest;
 use App\Http\Requests\UpdateClientRequest;
 use App\Models\Client;
 use App\Models\ClientStatus;
+use App\Models\User;
 use Gate;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Yajra\DataTables\Facades\DataTables;
 
 class ClientController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         abort_if(Gate::denies('client_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $clients = Client::with(['status'])->get();
+        if ($request->ajax()) {
+            $query = Client::with(['status', 'user'])->select(sprintf('%s.*', (new Client())->table));
+            $table = Datatables::of($query);
 
-        return view('admin.clients.index', compact('clients'));
+            $table->addColumn('placeholder', '&nbsp;');
+            $table->addColumn('actions', '&nbsp;');
+
+            $table->editColumn('actions', function ($row) {
+                $viewGate = 'client_show';
+                $editGate = 'client_edit';
+                $deleteGate = 'client_delete';
+                $crudRoutePart = 'clients';
+
+                return view('partials.datatablesActions', compact(
+                'viewGate',
+                'editGate',
+                'deleteGate',
+                'crudRoutePart',
+                'row'
+            ));
+            });
+
+            $table->editColumn('id', function ($row) {
+                return $row->id ? $row->id : '';
+            });
+            $table->editColumn('company', function ($row) {
+                return $row->company ? $row->company : '';
+            });
+            $table->editColumn('website', function ($row) {
+                return $row->website ? $row->website : '';
+            });
+            $table->editColumn('country', function ($row) {
+                return $row->country ? $row->country : '';
+            });
+            $table->addColumn('status_name', function ($row) {
+                return $row->status ? $row->status->name : '';
+            });
+
+            $table->addColumn('user_email', function ($row) {
+                return $row->user ? $row->user->email : '';
+            });
+
+            $table->rawColumns(['actions', 'placeholder', 'status', 'user']);
+
+            return $table->make(true);
+        }
+
+        return view('admin.clients.index');
     }
 
     public function create()
     {
         abort_if(Gate::denies('client_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $statuses = ClientStatus::all()->pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
+        $statuses = ClientStatus::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
 
-        return view('admin.clients.create', compact('statuses'));
+        $users = User::pluck('email', 'id')->prepend(trans('global.pleaseSelect'), '');
+
+        return view('admin.clients.create', compact('statuses', 'users'));
     }
 
     public function store(StoreClientRequest $request)
@@ -43,11 +92,13 @@ class ClientController extends Controller
     {
         abort_if(Gate::denies('client_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $statuses = ClientStatus::all()->pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
+        $statuses = ClientStatus::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
 
-        $client->load('status');
+        $users = User::pluck('email', 'id')->prepend(trans('global.pleaseSelect'), '');
 
-        return view('admin.clients.edit', compact('statuses', 'client'));
+        $client->load('status', 'user');
+
+        return view('admin.clients.edit', compact('statuses', 'users', 'client'));
     }
 
     public function update(UpdateClientRequest $request, Client $client)
@@ -61,7 +112,7 @@ class ClientController extends Controller
     {
         abort_if(Gate::denies('client_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $client->load('status');
+        $client->load('status', 'user');
 
         return view('admin.clients.show', compact('client'));
     }

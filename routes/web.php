@@ -142,6 +142,20 @@ Route::group(['prefix' => 'admin', 'as' => 'admin.', 'namespace' => 'Admin', 'mi
     // Tasks Calendar
     Route::resource('tasks-calendars', 'TasksCalendarController', ['except' => ['create', 'store', 'edit', 'update', 'show', 'destroy']]);
 
+    // Vacations
+    Route::delete('vacations/destroy', 'VacationsController@massDestroy')->name('vacations.massDestroy');
+    Route::resource('vacations', 'VacationsController');
+
+    // Meetings
+    Route::delete('meetings/destroy', 'MeetingsController@massDestroy')->name('meetings.massDestroy');
+    Route::post('meetings/media', 'MeetingsController@storeMedia')->name('meetings.storeMedia');
+    Route::post('meetings/ckmedia', 'MeetingsController@storeCKEditorImages')->name('meetings.storeCKEditorImages');
+    Route::resource('meetings', 'MeetingsController');
+
+    // Project Tags
+    Route::delete('project-tags/destroy', 'ProjectTagsController@massDestroy')->name('project-tags.massDestroy');
+    Route::resource('project-tags', 'ProjectTagsController');
+
     Route::get('system-calendar', 'SystemCalendarController@index')->name('systemCalendar');
 });
 Route::group(['prefix' => 'profile', 'as' => 'profile.', 'namespace' => 'Auth', 'middleware' => ['auth']], function () {

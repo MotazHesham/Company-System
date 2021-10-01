@@ -46,8 +46,8 @@
                     <span class="btn btn-info btn-xs deselect-all" style="border-radius: 0">{{ trans('global.deselect_all') }}</span>
                 </div>
                 <select class="form-control select2 {{ $errors->has('roles') ? 'is-invalid' : '' }}" name="roles[]" id="roles" multiple required>
-                    @foreach($roles as $id => $roles)
-                        <option value="{{ $id }}" {{ in_array($id, old('roles', [])) ? 'selected' : '' }}>{{ $roles }}</option>
+                    @foreach($roles as $id => $role)
+                        <option value="{{ $id }}" {{ in_array($id, old('roles', [])) ? 'selected' : '' }}>{{ $role }}</option>
                     @endforeach
                 </select>
                 @if($errors->has('roles'))
@@ -67,6 +67,16 @@
                     </div>
                 @endif
                 <span class="help-block">{{ trans('cruds.user.fields.photo_helper') }}</span>
+            </div>
+            <div class="form-group">
+                <label for="working_hours">{{ trans('cruds.user.fields.working_hours') }}</label>
+                <input class="form-control {{ $errors->has('working_hours') ? 'is-invalid' : '' }}" type="number" name="working_hours" id="working_hours" value="{{ old('working_hours', '') }}" step="1">
+                @if($errors->has('working_hours'))
+                    <div class="invalid-feedback">
+                        {{ $errors->first('working_hours') }}
+                    </div>
+                @endif
+                <span class="help-block">{{ trans('cruds.user.fields.working_hours_helper') }}</span>
             </div>
             <div class="form-group">
                 <button class="btn btn-danger" type="submit">

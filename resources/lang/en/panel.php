@@ -1,5 +1,5 @@
 <?php
 
 return [
-    'site_title' => 'Company System',
+    'site_title' => 'Alliance System',
 ];

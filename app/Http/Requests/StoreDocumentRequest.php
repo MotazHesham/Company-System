@@ -17,16 +17,20 @@ class StoreDocumentRequest extends FormRequest
     public function rules()
     {
         return [
+            'name' => [
+                'string',
+                'required',
+            ],
             'project_id' => [
                 'required',
                 'integer',
             ],
             'document_file' => [
+                'array',
                 'required',
             ],
-            'name' => [
-                'string',
-                'nullable',
+            'document_file.*' => [
+                'required',
             ],
         ];
     }

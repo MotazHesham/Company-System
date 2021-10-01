@@ -626,6 +626,66 @@ class PermissionsTableSeeder extends Seeder
             ],
             [
                 'id'    => 155,
+                'title' => 'vacation_create',
+            ],
+            [
+                'id'    => 156,
+                'title' => 'vacation_edit',
+            ],
+            [
+                'id'    => 157,
+                'title' => 'vacation_show',
+            ],
+            [
+                'id'    => 158,
+                'title' => 'vacation_delete',
+            ],
+            [
+                'id'    => 159,
+                'title' => 'vacation_access',
+            ],
+            [
+                'id'    => 160,
+                'title' => 'meeting_create',
+            ],
+            [
+                'id'    => 161,
+                'title' => 'meeting_edit',
+            ],
+            [
+                'id'    => 162,
+                'title' => 'meeting_show',
+            ],
+            [
+                'id'    => 163,
+                'title' => 'meeting_delete',
+            ],
+            [
+                'id'    => 164,
+                'title' => 'meeting_access',
+            ],
+            [
+                'id'    => 165,
+                'title' => 'project_tag_create',
+            ],
+            [
+                'id'    => 166,
+                'title' => 'project_tag_edit',
+            ],
+            [
+                'id'    => 167,
+                'title' => 'project_tag_show',
+            ],
+            [
+                'id'    => 168,
+                'title' => 'project_tag_delete',
+            ],
+            [
+                'id'    => 169,
+                'title' => 'project_tag_access',
+            ],
+            [
+                'id'    => 170,
                 'title' => 'profile_password_edit',
             ],
         ];

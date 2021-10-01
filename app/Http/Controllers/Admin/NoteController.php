@@ -11,23 +11,60 @@ use App\Models\Project;
 use Gate;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Yajra\DataTables\Facades\DataTables;
 
 class NoteController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         abort_if(Gate::denies('note_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $notes = Note::with(['project'])->get();
+        if ($request->ajax()) {
+            $query = Note::with(['project'])->select(sprintf('%s.*', (new Note())->table));
+            $table = Datatables::of($query);
 
-        return view('admin.notes.index', compact('notes'));
+            $table->addColumn('placeholder', '&nbsp;');
+            $table->addColumn('actions', '&nbsp;');
+
+            $table->editColumn('actions', function ($row) {
+                $viewGate = 'note_show';
+                $editGate = 'note_edit';
+                $deleteGate = 'note_delete';
+                $crudRoutePart = 'notes';
+
+                return view('partials.datatablesActions', compact(
+                'viewGate',
+                'editGate',
+                'deleteGate',
+                'crudRoutePart',
+                'row'
+            ));
+            });
+
+            $table->editColumn('id', function ($row) {
+                return $row->id ? $row->id : '';
+            });
+            $table->addColumn('project_name', function ($row) {
+                return $row->project ? $row->project->name : '';
+            });
+
+            $table->editColumn('note_text', function ($row) {
+                return $row->note_text ? $row->note_text : '';
+            });
+
+            $table->rawColumns(['actions', 'placeholder', 'project']);
+
+            return $table->make(true);
+        }
+
+        return view('admin.notes.index');
     }
 
     public function create()
     {
         abort_if(Gate::denies('note_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $projects = Project::all()->pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
+        $projects = Project::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
 
         return view('admin.notes.create', compact('projects'));
     }
@@ -43,7 +80,7 @@ class NoteController extends Controller
     {
         abort_if(Gate::denies('note_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $projects = Project::all()->pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
+        $projects = Project::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
 
         $note->load('project');
 

@@ -117,77 +117,7 @@ class HomeController
         }
 
         $settings4 = [
-            'chart_title'           => 'Companies',
-            'chart_type'            => 'number_block',
-            'report_type'           => 'group_by_date',
-            'model'                 => 'App\Models\ContactCompany',
-            'group_by_field'        => 'created_at',
-            'group_by_period'       => 'day',
-            'aggregate_function'    => 'count',
-            'filter_field'          => 'created_at',
-            'group_by_field_format' => 'd-m-Y H:i:s',
-            'column_class'          => 'col-md-3',
-            'entries_number'        => '5',
-            'translation_key'       => 'contactCompany',
-        ];
-
-        $settings4['total_number'] = 0;
-        if (class_exists($settings4['model'])) {
-            $settings4['total_number'] = $settings4['model']::when(isset($settings4['filter_field']), function ($query) use ($settings4) {
-                if (isset($settings4['filter_days'])) {
-                    return $query->where($settings4['filter_field'], '>=',
-                now()->subDays($settings4['filter_days'])->format('Y-m-d'));
-                }
-                if (isset($settings4['filter_period'])) {
-                    switch ($settings4['filter_period']) {
-                case 'week': $start = date('Y-m-d', strtotime('last Monday')); break;
-                case 'month': $start = date('Y-m') . '-01'; break;
-                case 'year': $start = date('Y') . '-01-01'; break;
-            }
-                    if (isset($start)) {
-                        return $query->where($settings4['filter_field'], '>=', $start);
-                    }
-                }
-            })
-                ->{$settings4['aggregate_function'] ?? 'count'}($settings4['aggregate_field'] ?? '*');
-        }
-
-        $settings5 = [
-            'chart_title'           => 'Projects',
-            'chart_type'            => 'line',
-            'report_type'           => 'group_by_date',
-            'model'                 => 'App\Models\Project',
-            'group_by_field'        => 'start_date',
-            'group_by_period'       => 'day',
-            'aggregate_function'    => 'count',
-            'filter_field'          => 'created_at',
-            'group_by_field_format' => 'd-m-Y',
-            'column_class'          => 'col-md-6',
-            'entries_number'        => '5',
-            'translation_key'       => 'project',
-        ];
-
-        $chart5 = new LaravelChart($settings5);
-
-        $settings6 = [
-            'chart_title'           => 'Income',
-            'chart_type'            => 'bar',
-            'report_type'           => 'group_by_date',
-            'model'                 => 'App\Models\Income',
-            'group_by_field'        => 'entry_date',
-            'group_by_period'       => 'day',
-            'aggregate_function'    => 'count',
-            'filter_field'          => 'created_at',
-            'group_by_field_format' => 'd-m-Y',
-            'column_class'          => 'col-md-6',
-            'entries_number'        => '5',
-            'translation_key'       => 'income',
-        ];
-
-        $chart6 = new LaravelChart($settings6);
-
-        $settings7 = [
-            'chart_title'           => 'Tasks',
+            'chart_title'           => 'tasks',
             'chart_type'            => 'pie',
             'report_type'           => 'group_by_date',
             'model'                 => 'App\Models\Task',
@@ -195,46 +125,45 @@ class HomeController
             'group_by_period'       => 'day',
             'aggregate_function'    => 'count',
             'filter_field'          => 'created_at',
-            'group_by_field_format' => 'd-m-Y',
-            'column_class'          => 'col-md-6',
+            'group_by_field_format' => 'd/m/Y',
+            'column_class'          => 'col-md-4',
             'entries_number'        => '5',
             'translation_key'       => 'task',
         ];
 
-        $chart7 = new LaravelChart($settings7);
+        $chart4 = new LaravelChart($settings4);
 
-        $settings8 = [
-            'chart_title'           => 'Latest Registered Clients',
+        $settings5 = [
+            'chart_title'           => 'Lastest Created Projects',
             'chart_type'            => 'latest_entries',
             'report_type'           => 'group_by_date',
-            'model'                 => 'App\Models\Client',
-            'group_by_field'        => 'created_at',
+            'model'                 => 'App\Models\Project',
+            'group_by_field'        => 'start_date',
             'group_by_period'       => 'day',
             'aggregate_function'    => 'count',
             'filter_field'          => 'created_at',
-            'group_by_field_format' => 'd-m-Y H:i:s',
+            'group_by_field_format' => 'd/m/Y',
             'column_class'          => 'col-md-6',
             'entries_number'        => '5',
             'fields'                => [
-                'first_name' => '',
-                'last_name'  => '',
-                'company'    => '',
-                'phone'      => '',
+                'name'        => '',
+                'description' => '',
+                'client'      => 'company',
             ],
-            'translation_key' => 'client',
+            'translation_key' => 'project',
         ];
 
-        $settings8['data'] = [];
-        if (class_exists($settings8['model'])) {
-            $settings8['data'] = $settings8['model']::latest()
-                ->take($settings8['entries_number'])
+        $settings5['data'] = [];
+        if (class_exists($settings5['model'])) {
+            $settings5['data'] = $settings5['model']::latest()
+                ->take($settings5['entries_number'])
                 ->get();
         }
 
-        if (!array_key_exists('fields', $settings8)) {
-            $settings8['fields'] = [];
+        if (!array_key_exists('fields', $settings5)) {
+            $settings5['fields'] = [];
         }
 
-        return view('home', compact('settings1', 'settings2', 'settings3', 'settings4', 'chart5', 'chart6', 'chart7', 'settings8'));
+        return view('home', compact('settings1', 'settings2', 'settings3', 'chart4', 'settings5'));
     }
 }

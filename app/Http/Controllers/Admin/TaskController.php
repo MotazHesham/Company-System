@@ -7,6 +7,7 @@ use App\Http\Controllers\Traits\MediaUploadingTrait;
 use App\Http\Requests\MassDestroyTaskRequest;
 use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskRequest;
+use App\Models\Project;
 use App\Models\Task;
 use App\Models\TaskStatus;
 use App\Models\TaskTag;
@@ -26,7 +27,7 @@ class TaskController extends Controller
         abort_if(Gate::denies('task_access'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
         if ($request->ajax()) {
-            $query = Task::with(['status', 'tags', 'assigned_to', 'created_by'])->select(sprintf('%s.*', (new Task())->table));
+            $query = Task::with(['status', 'tags', 'assigned_to', 'project', 'created_by'])->select(sprintf('%s.*', (new Task())->table));
             $table = Datatables::of($query);
 
             $table->addColumn('placeholder', '&nbsp;');
@@ -69,14 +70,26 @@ class TaskController extends Controller
                 return implode(' ', $labels);
             });
             $table->editColumn('attachment', function ($row) {
-                return $row->attachment ? '<a href="' . $row->attachment->getUrl() . '" target="_blank">' . trans('global.downloadFile') . '</a>' : '';
+                if (!$row->attachment) {
+                    return '';
+                }
+                $links = [];
+                foreach ($row->attachment as $media) {
+                    $links[] = '<a href="' . $media->getUrl() . '" target="_blank">' . trans('global.downloadFile') . '</a>';
+                }
+
+                return implode(', ', $links);
             });
 
             $table->addColumn('assigned_to_name', function ($row) {
                 return $row->assigned_to ? $row->assigned_to->name : '';
             });
 
-            $table->rawColumns(['actions', 'placeholder', 'status', 'tag', 'attachment', 'assigned_to']);
+            $table->addColumn('project_name', function ($row) {
+                return $row->project ? $row->project->name : '';
+            });
+
+            $table->rawColumns(['actions', 'placeholder', 'status', 'tag', 'attachment', 'assigned_to', 'project']);
 
             return $table->make(true);
         }
@@ -88,21 +101,23 @@ class TaskController extends Controller
     {
         abort_if(Gate::denies('task_create'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $statuses = TaskStatus::all()->pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
+        $statuses = TaskStatus::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
 
-        $tags = TaskTag::all()->pluck('name', 'id');
+        $tags = TaskTag::pluck('name', 'id');
 
-        $assigned_tos = User::all()->pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
+        $assigned_tos = User::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
 
-        return view('admin.tasks.create', compact('statuses', 'tags', 'assigned_tos'));
+        $projects = Project::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
+
+        return view('admin.tasks.create', compact('statuses', 'tags', 'assigned_tos', 'projects'));
     }
 
     public function store(StoreTaskRequest $request)
     {
         $task = Task::create($request->all());
         $task->tags()->sync($request->input('tags', []));
-        if ($request->input('attachment', false)) {
-            $task->addMedia(storage_path('tmp/uploads/' . basename($request->input('attachment'))))->toMediaCollection('attachment');
+        foreach ($request->input('attachment', []) as $file) {
+            $task->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('attachment');
         }
 
         if ($media = $request->input('ck-media', false)) {
@@ -116,30 +131,35 @@ class TaskController extends Controller
     {
         abort_if(Gate::denies('task_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $statuses = TaskStatus::all()->pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
+        $statuses = TaskStatus::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
 
-        $tags = TaskTag::all()->pluck('name', 'id');
+        $tags = TaskTag::pluck('name', 'id');
 
-        $assigned_tos = User::all()->pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
+        $assigned_tos = User::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
 
-        $task->load('status', 'tags', 'assigned_to', 'created_by');
+        $projects = Project::pluck('name', 'id')->prepend(trans('global.pleaseSelect'), '');
 
-        return view('admin.tasks.edit', compact('statuses', 'tags', 'assigned_tos', 'task'));
+        $task->load('status', 'tags', 'assigned_to', 'project', 'created_by');
+
+        return view('admin.tasks.edit', compact('statuses', 'tags', 'assigned_tos', 'projects', 'task'));
     }
 
     public function update(UpdateTaskRequest $request, Task $task)
     {
         $task->update($request->all());
         $task->tags()->sync($request->input('tags', []));
-        if ($request->input('attachment', false)) {
-            if (!$task->attachment || $request->input('attachment') !== $task->attachment->file_name) {
-                if ($task->attachment) {
-                    $task->attachment->delete();
+        if (count($task->attachment) > 0) {
+            foreach ($task->attachment as $media) {
+                if (!in_array($media->file_name, $request->input('attachment', []))) {
+                    $media->delete();
                 }
-                $task->addMedia(storage_path('tmp/uploads/' . basename($request->input('attachment'))))->toMediaCollection('attachment');
             }
-        } elseif ($task->attachment) {
-            $task->attachment->delete();
+        }
+        $media = $task->attachment->pluck('file_name')->toArray();
+        foreach ($request->input('attachment', []) as $file) {
+            if (count($media) === 0 || !in_array($file, $media)) {
+                $task->addMedia(storage_path('tmp/uploads/' . basename($file)))->toMediaCollection('attachment');
+            }
         }
 
         return redirect()->route('admin.tasks.index');
@@ -149,7 +169,7 @@ class TaskController extends Controller
     {
         abort_if(Gate::denies('task_show'), Response::HTTP_FORBIDDEN, '403 Forbidden');
 
-        $task->load('status', 'tags', 'assigned_to', 'created_by');
+        $task->load('status', 'tags', 'assigned_to', 'project', 'created_by');
 
         return view('admin.tasks.show', compact('task'));
     }

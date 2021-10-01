@@ -98,6 +98,20 @@
                 <span class="help-block">{{ trans('cruds.task.fields.assigned_to_helper') }}</span>
             </div>
             <div class="form-group">
+                <label class="required" for="project_id">{{ trans('cruds.task.fields.project') }}</label>
+                <select class="form-control select2 {{ $errors->has('project') ? 'is-invalid' : '' }}" name="project_id" id="project_id" required>
+                    @foreach($projects as $id => $entry)
+                        <option value="{{ $id }}" {{ (old('project_id') ? old('project_id') : $task->project->id ?? '') == $id ? 'selected' : '' }}>{{ $entry }}</option>
+                    @endforeach
+                </select>
+                @if($errors->has('project'))
+                    <div class="invalid-feedback">
+                        {{ $errors->first('project') }}
+                    </div>
+                @endif
+                <span class="help-block">{{ trans('cruds.task.fields.project_helper') }}</span>
+            </div>
+            <div class="form-group">
                 <button class="btn btn-danger" type="submit">
                     {{ trans('global.save') }}
                 </button>
@@ -112,35 +126,41 @@
 
 @section('scripts')
 <script>
-    Dropzone.options.attachmentDropzone = {
+    var uploadedAttachmentMap = {}
+Dropzone.options.attachmentDropzone = {
     url: '{{ route('admin.tasks.storeMedia') }}',
-    maxFilesize: 2, // MB
-    maxFiles: 1,
+    maxFilesize: 30, // MB
     addRemoveLinks: true,
     headers: {
       'X-CSRF-TOKEN': "{{ csrf_token() }}"
     },
     params: {
-      size: 2
+      size: 30
     },
     success: function (file, response) {
-      $('form').find('input[name="attachment"]').remove()
-      $('form').append('<input type="hidden" name="attachment" value="' + response.name + '">')
+      $('form').append('<input type="hidden" name="attachment[]" value="' + response.name + '">')
+      uploadedAttachmentMap[file.name] = response.name
     },
     removedfile: function (file) {
       file.previewElement.remove()
-      if (file.status !== 'error') {
-        $('form').find('input[name="attachment"]').remove()
-        this.options.maxFiles = this.options.maxFiles + 1
+      var name = ''
+      if (typeof file.file_name !== 'undefined') {
+        name = file.file_name
+      } else {
+        name = uploadedAttachmentMap[file.name]
       }
+      $('form').find('input[name="attachment[]"][value="' + name + '"]').remove()
     },
     init: function () {
 @if(isset($task) && $task->attachment)
-      var file = {!! json_encode($task->attachment) !!}
-          this.options.addedfile.call(this, file)
-      file.previewElement.classList.add('dz-complete')
-      $('form').append('<input type="hidden" name="attachment" value="' + file.file_name + '">')
-      this.options.maxFiles = this.options.maxFiles - 1
+          var files =
+            {!! json_encode($task->attachment) !!}
+              for (var i in files) {
+              var file = files[i]
+              this.options.addedfile.call(this, file)
+              file.previewElement.classList.add('dz-complete')
+              $('form').append('<input type="hidden" name="attachment[]" value="' + file.file_name + '">')
+            }
 @endif
     },
      error: function (file, response) {

@@ -21,16 +21,33 @@ class UpdateProjectRequest extends FormRequest
                 'string',
                 'required',
             ],
+            'start_date' => [
+                'required',
+                'date_format:' . config('panel.date_format'),
+            ],
+            'end_date' => [
+                'required',
+                'date_format:' . config('panel.date_format'),
+            ],
+            'budget' => [
+                'numeric',
+            ],
             'client_id' => [
                 'required',
                 'integer',
             ],
-            'start_date' => [
-                'date_format:' . config('panel.date_format'),
-                'nullable',
+            'tags.*' => [
+                'integer',
             ],
-            'budget' => [
-                'numeric',
+            'tags' => [
+                'array',
+            ],
+            'developers.*' => [
+                'integer',
+            ],
+            'developers' => [
+                'required',
+                'array',
             ],
         ];
     }

@@ -17,19 +17,7 @@ class StoreClientRequest extends FormRequest
     public function rules()
     {
         return [
-            'first_name' => [
-                'string',
-                'required',
-            ],
-            'last_name' => [
-                'string',
-                'nullable',
-            ],
             'company' => [
-                'string',
-                'nullable',
-            ],
-            'phone' => [
                 'string',
                 'nullable',
             ],
@@ -37,13 +25,13 @@ class StoreClientRequest extends FormRequest
                 'string',
                 'nullable',
             ],
-            'skype' => [
-                'string',
-                'nullable',
-            ],
             'country' => [
                 'string',
                 'nullable',
+            ],
+            'user_id' => [
+                'required',
+                'integer',
             ],
         ];
     }

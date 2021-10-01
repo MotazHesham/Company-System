@@ -46,6 +46,9 @@
                         {{ trans('cruds.task.fields.assigned_to') }}
                     </th>
                     <th>
+                        {{ trans('cruds.task.fields.project') }}
+                    </th>
+                    <th>
                         &nbsp;
                     </th>
                 </tr>
@@ -109,11 +112,12 @@
 { data: 'attachment', name: 'attachment', sortable: false, searchable: false },
 { data: 'due_date', name: 'due_date' },
 { data: 'assigned_to_name', name: 'assigned_to.name' },
+{ data: 'project_name', name: 'project.name' },
 { data: 'actions', name: '{{ trans('global.actions') }}' }
     ],
     orderCellsTop: true,
     order: [[ 1, 'desc' ]],
-    pageLength: 100,
+    pageLength: 25,
   };
   let table = $('.datatable-Task').DataTable(dtOverrideGlobals);
   $('a[data-toggle="tab"]').on('shown.bs.tab click', function(e){

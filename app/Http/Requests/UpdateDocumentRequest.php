@@ -17,13 +17,20 @@ class UpdateDocumentRequest extends FormRequest
     public function rules()
     {
         return [
+            'name' => [
+                'string',
+                'required',
+            ],
             'project_id' => [
                 'required',
                 'integer',
             ],
-            'name' => [
-                'string',
-                'nullable',
+            'document_file' => [
+                'array',
+                'required',
+            ],
+            'document_file.*' => [
+                'required',
             ],
         ];
     }

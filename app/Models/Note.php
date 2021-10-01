@@ -3,12 +3,14 @@
 namespace App\Models;
 
 use \DateTimeInterface;
+use App\Traits\Auditable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Note extends Model
 {
     use SoftDeletes;
+    use Auditable;
 
     public $table = 'notes';
 

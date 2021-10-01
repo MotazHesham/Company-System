@@ -31,9 +31,16 @@ class UpdateTaskRequest extends FormRequest
             'tags' => [
                 'array',
             ],
+            'attachment' => [
+                'array',
+            ],
             'due_date' => [
                 'date_format:' . config('panel.date_format'),
                 'nullable',
+            ],
+            'project_id' => [
+                'required',
+                'integer',
             ],
         ];
     }
